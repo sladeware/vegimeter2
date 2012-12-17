@@ -11,17 +11,6 @@ optimize their nutrient transport.
 Please visit <https://sites.google.com/site/vegimeter2/> to learn more
 about Vegimeter device.
 
-How to compile it and load
---------------------------
-
-Build command to produce binary:
-
-    $ bb build
-
-To upload result binary on the board, use the following load command:
-
-    $ bb load
-
 Documents
 ---------
 
