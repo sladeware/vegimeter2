@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 #
+# http://www.bionicbunny.org/
+# Copyright (c) 2012-2011 Sladeware LLC
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,10 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__copyright__ = 'Copyright (c) 2012 Sladeware LLC'
-
 import re
-import os.path
+import os
 
 import bb
 
@@ -23,14 +24,14 @@ import bb
 USE_FRITZING = False
 
 if USE_FRITZING:
-  from bb.third_party import fritzing
-  from bb.hardware.devices.processors.propeller_p8x32 import PropellerP8X32A_Q44
+  from bb.tools.edas import fritzing
+  from bb.app.hardware.devices.processors.propeller_p8x32 import PropellerP8X32A_Q44
   # First of all you need to setup Fritzing
   # NOTE(team): developer can use fritzing.set_home_dir() to setup home
   # directory directly.
   fritzing.find_home_dir()
-  fritzing.add_search_path(os.path.join(bb.env.pwd(), 'parts'))
-  vegimeter_device = fritzing.parse('device.fz')
+  fritzing.add_search_path(os.path.join(os.getcwd(), "device", "parts"))
+  vegimeter_device = fritzing.parse(os.path.join("device", "device.fz"))
   # Fix vegimeter device design loaded from Fritzing schematic. The reason is
   # that the current version of QuickStart Board doesn't have a parts such as
   # Propeller P8X32A-Q44 microchip. Thus we need to add them manually.
@@ -38,7 +39,7 @@ if USE_FRITZING:
   processor = board.add_element(PropellerP8X32A_Q44())
   processor.set_designator('U1')
 else:
-  from bb.hardware.devices.boards import P8X32A_QuickStartBoard
+  from bb.app.hardware.devices.boards import P8X32A_QuickStartBoard
   board = P8X32A_QuickStartBoard()
   board.set_designator('QSP1')
   vegimeter_device = board
@@ -52,13 +53,16 @@ if not vegimeter_board:
   print "Board <QSP1> cannot be found!"
   exit(0)
 
-vegimeter = bb.Mapping('Vegimeter', board=vegimeter_board)
-vegimeter.register_thread(bb.os.Thread('UI', 'ui_runner'))
-vegimeter.register_thread(bb.os.Thread('CONTROL_PANEL', 'control_panel_runner'))
+vegimeter = bb.app.Mapping("Vegimeter", processor=vegimeter_board.get_processor())
+vegimeter.register_threads([
+    bb.app.Thread("UI", "ui_runner"),
+    bb.app.Thread("CONTROL_PANEL", "control_panel_runner")
+])
 # TODO(team): the following (and others) drivers has to be connected
 # automatically.
-from bb.os.drivers.gpio.button_driver import ButtonDriver
-from bb.os.drivers.processors.propeller_p8x32 import ShMemDriver
+from bb.app.meta_os.drivers.gpio.button_driver import ButtonDriver
+from bb.app.meta_os.drivers.processors.propeller_p8x32 import ShMemDriver
+
 vegimeter.register_threads([ButtonDriver(), ShMemDriver()])
 
 def bill_of_materials():
