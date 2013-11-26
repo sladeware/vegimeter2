@@ -107,6 +107,7 @@ void engine_wait_ms(unsigned int ms) {
 void engine_xbee_init() {
   xbee = fopen("SSER:9600,9,8", "w"); // p9 out, p8 in
   if (xbee == NULL) {
+    puts("ERROR: Cannot open the XBee");
     return;
   }
   setbuf(xbee, 0);
@@ -124,29 +125,58 @@ void engine_init() {
   }
 }
 
+// From http://code.google.com/p/propsideworkspace/source/browse/Learn/Simple+Libraries/Utility/libsimpletools/itoa.c?spec=svn2c2224c84beb4a7e5569b00754883f84eaae08ac&r=ff7cfd8e63cf9940bbaa2311d82da626e8d7aebf
+char* itoa(int i, char b[], int base) {
+  char const digit[] = "0123456789ABCDEF";
+  char* p = b;
+  if (i < 0) {
+    *p++ = '-';
+    i = -1;
+  }
+
+  int shifter = i;
+  do { // Move to where representation ends
+    ++p;
+    shifter = shifter/base;
+  } while(shifter);
+  *p = '\0';
+  do{ // Move back, inserting digits as u go
+    *--p = digit[i%base];
+    i = i/base;
+  } while (i);
+
+  return b;
+}
+
 void engine_runner() {
+  char *temp[16];
+
   while (1) {
     engine_init();
 
-    sprintf(str, "\nAir temperature: %d\n", get_air_temp());
+    //sprintf(str, "\nAir temperature: %d\n", get_air_temp());
+    strcpy(str, "Air temperature: ");
+    itoa(get_air_temp(), temp, 10);
+    strcpy(str, temp);
+    strcpy(str, "\n");
     fputs(str, xbee);
-    memset(str, 0, STR_SIZE);
+    //memset(str, 0, STR_SIZE);
 
     soil_a = get_soil_a_temp();
     soil_b = get_soil_b_temp();
     soil_c = get_soil_c_temp();
     soil_d = get_soil_d_temp();
     soil_temp = soil_a + soil_b + soil_c + soil_d;
-    sprintf(str, "Soil A,B,C,D,+: %d,%d,%d,%d,%d\n", soil_a, soil_b, soil_c, soil_d, soil_temp);
-    fputs(str, xbee);
-    memset(str, 0, STR_SIZE);
+    //sprintf(str, "Soil A,B,C,D,+: %d,%d,%d,%d,%d\n", soil_a, soil_b, soil_c, soil_d, soil_temp);
+    //fputs(str, xbee);
+    //memset(str, 0, STR_SIZE);
 
     water_a = get_water_a_temp();
     water_b = get_water_b_temp();
     water_temp = water_a + water_b;
-    sprintf(str, "Water A,B,+: %d,%d,%d\n", water_a, water_b, water_temp);
-    fputs(str, xbee);
-    memset(str, 0, STR_SIZE);
+    //sprintf(str, "Water A,B,+: %d,%d,%d\n", water_a, water_b, water_temp);
+    //fputs(str, xbee);
+    //memset(str, 0, STR_SIZE);
 
     if (soil_temp < HEAT_PUMP_ACTIVATION * 4) {
       if (water_temp > HEATER_DEACTIVATION * 2 ||
