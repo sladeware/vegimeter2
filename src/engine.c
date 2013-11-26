@@ -162,7 +162,7 @@ void engine_runner() {
     strcat(str, "\n");
     fputs(str, xbee);
     memset(str, 0, STR_SIZE);
-
+    fputs("7\n", xbee);
     soil_a = get_soil_a_temp();
     soil_b = get_soil_b_temp();
     soil_c = get_soil_c_temp();
