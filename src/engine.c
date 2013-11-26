@@ -122,6 +122,8 @@ void engine_init() {
 
     heater_off();
     pump_off();
+
+    fputs("Engine initialized.\n", xbee);
   }
 }
 
@@ -137,46 +139,65 @@ char* itoa(int i, char b[], int base) {
   int shifter = i;
   do { // Move to where representation ends
     ++p;
-    shifter = shifter/base;
-  } while(shifter);
+    shifter = shifter / base;
+  } while (shifter);
   *p = '\0';
   do{ // Move back, inserting digits as u go
-    *--p = digit[i%base];
-    i = i/base;
+    *--p = digit[i % base];
+    i = i / base;
   } while (i);
 
   return b;
 }
 
 void engine_runner() {
-  char *temp[16];
+  char temp[16];
 
   while (1) {
     engine_init();
 
-    //sprintf(str, "\nAir temperature: %d\n", get_air_temp());
     strcpy(str, "Air temperature: ");
     itoa(get_air_temp(), temp, 10);
-    strcpy(str, temp);
-    strcpy(str, "\n");
+    strcat(str, temp);
+    strcat(str, "\n");
     fputs(str, xbee);
-    //memset(str, 0, STR_SIZE);
+    memset(str, 0, STR_SIZE);
 
     soil_a = get_soil_a_temp();
     soil_b = get_soil_b_temp();
     soil_c = get_soil_c_temp();
     soil_d = get_soil_d_temp();
     soil_temp = soil_a + soil_b + soil_c + soil_d;
-    //sprintf(str, "Soil A,B,C,D,+: %d,%d,%d,%d,%d\n", soil_a, soil_b, soil_c, soil_d, soil_temp);
-    //fputs(str, xbee);
-    //memset(str, 0, STR_SIZE);
+
+    strcpy(str, "Soil A,B,C,D,+: ");
+    itoa(soil_a, temp, 10);
+    strcat(str, temp);
+    itoa(soil_b, temp, 10);
+    strcat(str, temp);
+    itoa(soil_c, temp, 10);
+    strcat(str, temp);
+    itoa(soil_d, temp, 10);
+    strcat(str, temp);
+    itoa(soil_temp, temp, 10);
+    strcat(str, temp);
+    strcat(str, "\n");
+    fputs(str, xbee);
+    memset(str, 0, STR_SIZE);
 
     water_a = get_water_a_temp();
     water_b = get_water_b_temp();
     water_temp = water_a + water_b;
-    //sprintf(str, "Water A,B,+: %d,%d,%d\n", water_a, water_b, water_temp);
-    //fputs(str, xbee);
-    //memset(str, 0, STR_SIZE);
+
+    strcpy(str, "Water A,B,+: ");
+    itoa(water_a, temp, 10);
+    strcat(str, temp);
+    itoa(water_b, temp, 10);
+    strcat(str, temp);
+    itoa(water_temp, temp, 10);
+    strcat(str, temp);
+    strcat(str, "\n");
+    fputs(str, xbee);
+    memset(str, 0, STR_SIZE);
 
     if (soil_temp < HEAT_PUMP_ACTIVATION * 4) {
       if (water_temp > HEATER_DEACTIVATION * 2 ||
