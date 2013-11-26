@@ -10,8 +10,6 @@
 #include <stdio.h>
 #include "pins.h"
 
-
-
 #define HEAT_PUMP_ACTIVATION 2100 // Centi-Celsius ;)
 #define HEATER 6
 #define HEATER_DEACTIVATION 4300 // Centi-Celsius ;)
@@ -21,8 +19,23 @@
 
 HUBDATA char is_initialized = 0;
 HUBDATA char str[STR_SIZE];
-HUBDATA int water_temp, soil_temp, soil_a, soil_b, soil_c, soil_d, water_a, water_b;
+HUBDATA int water_temp, soil_temp, soil_a, soil_b, soil_c, soil_d;
+HUBDATA int water_a, water_b;
 HUBDATA FILE* xbee;
+
+extern _Driver _SimpleSerialDriver;
+extern _Driver _FileDriver;
+
+/* This is a list of all drivers we can use in the
+ * program. The default _InitIO function opens stdin,
+ * stdout, and stderr based on the first driver in
+ * the list (the serial driver, for us)
+ */
+_Driver *_driverlist[] = {
+  &_SimpleSerialDriver,
+  &_FileDriver,
+  NULL
+};
 
 int get_temp(unsigned int pin) {
   struct ds18b20_input input;
@@ -92,9 +105,8 @@ void engine_wait_ms(unsigned int ms) {
 }
 
 void engine_xbee_init() {
-  xbee = fopen("SSER:9600,9,8", "w");
+  xbee = fopen("SSER:9600,9,8", "w"); // p9 out, p8 in
   if (xbee == NULL) {
-    puts("FATAL: Cannot open XBee!\n");
     return;
   }
   setbuf(xbee, 0);
@@ -106,8 +118,6 @@ void engine_init() {
     is_initialized = 1;
 
     engine_xbee_init();
-
-    fputs("\n\nInitializing Vegimeter 2...\n", xbee);
 
     heater_off();
     pump_off();
