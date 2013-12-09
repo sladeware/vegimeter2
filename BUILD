@@ -6,7 +6,6 @@ from vegimeter2 import vegimeter2
 
 propeller_binary(name="vegimeter2",
                  srcs=["src/engine.c",
-                       "../bbos/src/main/c/bb/os/drivers/onewire/slaves/ds18b20.c",
                        "../bbos/src/main/c/bb/os/drivers/onewire/onewire_bus.c",
                        vegimeter2])
 

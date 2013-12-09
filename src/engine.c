@@ -5,9 +5,9 @@
  */
 
 #include <bb/os.h>
-#include <bb/os/drivers/onewire/slaves/ds18b20.h>
 #include <propeller.h>
 #include <stdio.h>
+#include "bb/os/drivers/onewire/onewire_bus.h"
 #include "pins.h"
 
 #define HEAT_PUMP_ACTIVATION 2100 // Centi-Celsius ;)
@@ -16,12 +16,30 @@
 #define POLLING_PERIOD 1000 // Milliseconds
 #define PUMP 7
 #define STR_SIZE 64
+#define TEMP_SIZE 16
+
+/* Read scratch pad. */
+#define DS18B20_READ_SCRATCHPAD 0xBE
+/* Write scratch pad. */
+#define DS18B20_WRITE_SCRATCHPAD 0x4E
+/* Start temperature conversion. */
+#define DS18B20_CONVERT_TEMPERATURE 0x44
+/* Read power status. */
+#define DS18B20_READ_POWER 0xB4
+/* Scratch pad size in bytes. */
+#define DS18B20_SCRATCHPAD_SIZE 9
+
+#define DEFAULT_TEMP_READING 54321
+#define DS18B20_1_100TH_CELCIUS(value) (100 * (value))
 
 HUBDATA char is_initialized = 0;
 HUBDATA char str[STR_SIZE];
-HUBDATA int water_temp, soil_temp, soil_a, soil_b, soil_c, soil_d;
-HUBDATA int water_a, water_b;
+HUBDATA char temp[TEMP_SIZE];
+HUBDATA int water_temp = 0, soil_temp = 0, soil_a = 0, soil_b = 0, soil_c = 0;
+HUBDATA int soil_d = 0, water_a = 0, water_b = 0, air_temp = 0;
 HUBDATA FILE* xbee;
+HUBDATA char digit[] = "0123456789";
+HUBDATA char* p;
 
 extern _Driver _SimpleSerialDriver;
 extern _Driver _FileDriver;
@@ -37,15 +55,48 @@ _Driver *_driverlist[] = {
   NULL
 };
 
-int get_temp(unsigned int pin) {
-  struct ds18b20_input input;
-  struct ds18b20_output output;
+int get_temp(int16_t pin) {
+  int value;
+  int8_t err;
+  uint8_t i;
+  uint8_t sp[DS18B20_SCRATCHPAD_SIZE];
+  int sign;
+  int temp_data;
 
-  *(int *)input.pin = pin;
+  err = 0;
 
-  ds18b20_read_temperature(&input, &output);
+  value = DEFAULT_TEMP_READING;
+  ow_reset(pin);
+  /* Start measurements... */
+  if (ow_reset(pin)) {
+    fputs("Failed to reset 1-wire BUS before reading sensor's ROM.\r\n", xbee);
+    err = 3;
+    return DEFAULT_TEMP_READING;
+  }
+  /*
+   * Now we need to read the state from the input pin to define
+   * whether the bus is "idle".
+   */
+  if (!ow_input_pin_state(pin)) {
+    err = 2;
+    return DEFAULT_TEMP_READING;
+  }
+  ow_command(DS18B20_CONVERT_TEMPERATURE, pin);
+  if (ow_reset(pin)) {
+    fputs("Failed to reset 1-wire BUS before reading sensor's ROM.\r\n", xbee);
+    err = 1;
+    return DEFAULT_TEMP_READING;
+  }
+  ow_command(DS18B20_READ_SCRATCHPAD, pin);
+  for (i=0; i<DS18B20_SCRATCHPAD_SIZE; i++) {
+    sp[i] = ow_read_byte(pin);
+  }
+  /* Process measurements... */
+  sign = sp[1] & 0xF0 ? -1 : 1; /* sign */
+  temp_data = ((unsigned)(sp[1] & 0x07) << 8) | sp[0];
+  value = DS18B20_1_100TH_CELCIUS((temp_data & 0xFFFF) * sign) >> 4;
 
-  return *(int *)output.value;
+  return value;
 }
 
 unsigned int pump_on() {
@@ -127,37 +178,48 @@ void engine_init() {
   }
 }
 
-// From http://code.google.com/p/propsideworkspace/source/browse/Learn/Simple+Libraries/Utility/libsimpletools/itoa.c?spec=svn2c2224c84beb4a7e5569b00754883f84eaae08ac&r=ff7cfd8e63cf9940bbaa2311d82da626e8d7aebf
-char* itoa(int i, char b[], int base) {
-  char const digit[] = "0123456789ABCDEF";
-  char* p = b;
+void itoa(int i, char b[]) {
+  p = b;
+  memset(b, 0, TEMP_SIZE);
+
   if (i < 0) {
     *p++ = '-';
-    i = -1;
+    i *= -1;
   }
 
-  int shifter = i;
-  do { // Move to where representation ends
+  int shifter = i, ctr=TEMP_SIZE;
+  do {
     ++p;
-    shifter = shifter / base;
-  } while (shifter);
+    shifter /= 10;
+  } while (shifter && --ctr > 0);
   *p = '\0';
-  do{ // Move back, inserting digits as u go
-    *--p = digit[i % base];
-    i = i / base;
-  } while (i);
 
-  return b;
+  ctr = TEMP_SIZE;
+  do {
+    *--p = digit[i % 10];
+    i /= 10;
+  } while (i && --ctr > 0);
+}
+
+void engine_runnerT() {
+  int i = -13;
+
+  while (1) {
+    i++;
+    engine_init();
+    itoa(i, temp);
+    fputs(temp, xbee);
+    fputs("\n", xbee);
+    engine_wait_ms(500);
+  }
 }
 
 void engine_runner() {
-  char temp[16];
-
   while (1) {
     engine_init();
-
     strcpy(str, "Air temperature: ");
-    itoa(get_air_temp(), temp, 10);
+    air_temp = get_air_temp();
+    itoa(air_temp, temp);
     strcat(str, temp);
     strcat(str, "\n");
     fputs(str, xbee);
@@ -170,15 +232,19 @@ void engine_runner() {
     soil_temp = soil_a + soil_b + soil_c + soil_d;
 
     strcpy(str, "Soil A,B,C,D,+: ");
-    itoa(soil_a, temp, 10);
+    itoa(soil_a, temp);
     strcat(str, temp);
-    itoa(soil_b, temp, 10);
+    strcat(str, ",");
+    itoa(soil_b, temp);
     strcat(str, temp);
-    itoa(soil_c, temp, 10);
+    strcat(str, ",");
+    itoa(soil_c, temp);
     strcat(str, temp);
-    itoa(soil_d, temp, 10);
+    strcat(str, ",");
+    itoa(soil_d, temp);
     strcat(str, temp);
-    itoa(soil_temp, temp, 10);
+    strcat(str, ",");
+    itoa(soil_temp, temp);
     strcat(str, temp);
     strcat(str, "\n");
     fputs(str, xbee);
@@ -189,11 +255,13 @@ void engine_runner() {
     water_temp = water_a + water_b;
 
     strcpy(str, "Water A,B,+: ");
-    itoa(water_a, temp, 10);
+    itoa(water_a, temp);
     strcat(str, temp);
-    itoa(water_b, temp, 10);
+    strcat(str, ",");
+    itoa(water_b, temp);
     strcat(str, temp);
-    itoa(water_temp, temp, 10);
+    strcat(str, ",");
+    itoa(water_temp, temp);
     strcat(str, temp);
     strcat(str, "\n");
     fputs(str, xbee);
