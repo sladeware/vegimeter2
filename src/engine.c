@@ -56,7 +56,6 @@ _Driver *_driverlist[] = {
 };
 
 int get_temp(int16_t pin) {
-  int value;
   int8_t err;
   uint8_t i;
   uint8_t sp[DS18B20_SCRATCHPAD_SIZE];
@@ -65,7 +64,6 @@ int get_temp(int16_t pin) {
 
   err = 0;
 
-  value = DEFAULT_TEMP_READING;
   ow_reset(pin);
   /* Start measurements... */
   if (ow_reset(pin)) {
@@ -94,9 +92,7 @@ int get_temp(int16_t pin) {
   /* Process measurements... */
   sign = sp[1] & 0xF0 ? -1 : 1; /* sign */
   temp_data = ((unsigned)(sp[1] & 0x07) << 8) | sp[0];
-  value = DS18B20_1_100TH_CELCIUS((temp_data & 0xFFFF) * sign) >> 4;
-
-  return value;
+  return DS18B20_1_100TH_CELCIUS((temp_data & 0xFFFF) * sign) >> 4;
 }
 
 unsigned int pump_on() {
