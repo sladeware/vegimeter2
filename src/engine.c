@@ -11,10 +11,10 @@
 #include "pins.h"
 
 #define HEAT_PUMP_ACTIVATION 2100 // Centi-Celsius ;)
-#define HEATER 6
+#define HEATER 15
 #define HEATER_DEACTIVATION 4300 // Centi-Celsius ;)
 #define POLLING_PERIOD 1000 // Milliseconds
-#define PUMP 7
+#define PUMP 26
 #define STR_SIZE 64
 #define TEMP_SIZE 16
 
@@ -40,6 +40,8 @@ HUBDATA int soil_d = 0, water_a = 0, water_b = 0, air_temp = 0;
 HUBDATA FILE* xbee;
 HUBDATA char digit[] = "0123456789";
 HUBDATA char* p;
+HUBDATA int8_t led = 0;
+
 
 extern _Driver _SimpleSerialDriver;
 extern _Driver _FileDriver;
@@ -95,12 +97,20 @@ int get_temp(int16_t pin) {
   return DS18B20_1_100TH_CELCIUS((temp_data & 0xFFFF) * sign) >> 4;
 }
 
+void pump_init() {
+  DIR_OUTPUT(PUMP);
+}
+
 unsigned int pump_on() {
   return OUT_HIGH(PUMP);
 }
 
 unsigned int pump_off() {
   return OUT_LOW(PUMP);
+}
+
+void heater_init() {
+  DIR_OUTPUT(HEATER);
 }
 
 unsigned int heater_on() {
@@ -112,31 +122,57 @@ unsigned int heater_off() {
 }
 
 int get_soil_a_temp() {
-  return get_temp(2);
-}
-
-int get_soil_b_temp() {
-  return get_temp(3);
-}
-
-int get_soil_c_temp() {
-  return get_temp(4);
-}
-
-int get_soil_d_temp() {
-  return get_temp(5);
-}
-
-int get_water_a_temp() {
-  return get_temp(1);
-}
-
-int get_water_b_temp() {
   return get_temp(10);
 }
 
+int get_soil_b_temp() {
+  return get_temp(13);
+}
+
+int get_soil_c_temp() {
+  return get_temp(14);
+}
+
+int get_soil_d_temp() {
+  return get_temp(12);
+}
+
+int get_water_a_temp() {
+  return get_temp(11);
+}
+
+int get_water_b_temp() {
+  return get_temp(9);
+}
+
 int get_air_temp() {
-  return get_temp(0);
+  return get_temp(8);
+}
+
+void led_init() {
+  DIR_OUTPUT(20);
+}
+
+void led_on() {
+  OUT_HIGH(20);
+  led = 1;
+}
+
+void led_off() {
+  OUT_LOW(20);
+  led = 0;
+}
+
+int get_led() {
+  return led;
+}
+
+void blink_led() {
+  if (get_led()) {
+    led_off();
+  } else {
+    led_on();
+  }
 }
 
 void engine_wait_ms(unsigned int ms) {
@@ -152,7 +188,7 @@ void engine_wait_ms(unsigned int ms) {
 }
 
 void engine_xbee_init() {
-  xbee = fopen("SSER:9600,9,8", "w"); // p9 out, p8 in
+  xbee = fopen("SSER:9600,24,25", "w"); // p24 out, p25 in
   if (xbee == NULL) {
     puts("ERROR: Cannot open the XBee");
     return;
@@ -165,6 +201,9 @@ void engine_init() {
   if (is_initialized != 1) {
     is_initialized = 1;
 
+    led_init();
+    pump_init();
+    heater_init();
     engine_xbee_init();
 
     heater_off();
@@ -203,6 +242,7 @@ void engine_runnerT() {
   while (1) {
     i++;
     engine_init();
+    blink_led();
     itoa(i, temp);
     fputs(temp, xbee);
     fputs("\n", xbee);
@@ -213,6 +253,7 @@ void engine_runnerT() {
 void engine_runner() {
   while (1) {
     engine_init();
+    blink_led();
     strcpy(str, "Air temperature: ");
     air_temp = get_air_temp();
     itoa(air_temp, temp);
