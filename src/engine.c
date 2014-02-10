@@ -13,10 +13,14 @@
 #define HEAT_PUMP_ACTIVATION 2100 // Centi-Celsius ;)
 #define HEATER 15
 #define HEATER_DEACTIVATION 4300 // Centi-Celsius ;)
-#define POLLING_PERIOD 1000 // Milliseconds
+#define POLLING_PERIOD 60000 // Milliseconds
+#define MAX_HEATER_PERIODS 60 // One hour
 #define PUMP 26
 #define STR_SIZE 64
 #define TEMP_SIZE 16
+
+#define ERROR_BAD_TEMP 2
+#define ERROR_MAX_HEAT 1
 
 /* Read scratch pad. */
 #define DS18B20_READ_SCRATCHPAD 0xBE
@@ -41,7 +45,8 @@ HUBDATA FILE* xbee;
 HUBDATA char digit[] = "0123456789";
 HUBDATA char* p;
 HUBDATA int8_t led = 0;
-
+HUBDATA int8_t heater_periods = 0;
+HUBDATA int8_t halt = 0;
 
 extern _Driver _SimpleSerialDriver;
 extern _Driver _FileDriver;
@@ -58,19 +63,15 @@ _Driver *_driverlist[] = {
 };
 
 int get_temp(int16_t pin) {
-  int8_t err;
   uint8_t i;
   uint8_t sp[DS18B20_SCRATCHPAD_SIZE];
   int sign;
   int temp_data;
 
-  err = 0;
-
   ow_reset(pin);
   /* Start measurements... */
   if (ow_reset(pin)) {
     fputs("Failed to reset 1-wire BUS before reading sensor's ROM.\r\n", xbee);
-    err = 3;
     return DEFAULT_TEMP_READING;
   }
   /*
@@ -78,13 +79,11 @@ int get_temp(int16_t pin) {
    * whether the bus is "idle".
    */
   if (!ow_input_pin_state(pin)) {
-    err = 2;
     return DEFAULT_TEMP_READING;
   }
   ow_command(DS18B20_CONVERT_TEMPERATURE, pin);
   if (ow_reset(pin)) {
     fputs("Failed to reset 1-wire BUS before reading sensor's ROM.\r\n", xbee);
-    err = 1;
     return DEFAULT_TEMP_READING;
   }
   ow_command(DS18B20_READ_SCRATCHPAD, pin);
@@ -114,39 +113,62 @@ void heater_init() {
 }
 
 unsigned int heater_on() {
+  heater_periods++;
   return OUT_HIGH(HEATER);
 }
 
 unsigned int heater_off() {
+  heater_periods = 0;
   return OUT_LOW(HEATER);
 }
 
+void validate_temp(int temp) {
+  if (temp == DEFAULT_TEMP_READING) {
+    fputs("Bad temperature reading. Error. Halting.", xbee);
+    halt = ERROR_BAD_TEMP;
+  }
+}
+
 int get_soil_a_temp() {
-  return get_temp(10);
+  int t = get_temp(10);
+  validate_temp(t);
+  return t;
 }
 
 int get_soil_b_temp() {
-  return get_temp(13);
+  int t = get_temp(13);
+  validate_temp(t);
+  return t;  
 }
 
 int get_soil_c_temp() {
-  return get_temp(14);
+  int t = get_temp(14);
+  validate_temp(t);
+  return t;
 }
 
 int get_soil_d_temp() {
-  return get_temp(12);
+  int t = get_temp(12);
+  validate_temp(t);
+  return t;
 }
 
 int get_water_a_temp() {
-  return get_temp(11);
+  int t = get_temp(11);
+  validate_temp(t);
+  return t;
 }
 
 int get_water_b_temp() {
-  return get_temp(9);
+  int t = get_temp(9);
+  validate_temp(t);
+  return t;
 }
 
 int get_air_temp() {
-  return get_temp(8);
+  int t = get_temp(8);
+  validate_temp(t);
+  return t;
 }
 
 void led_init() {
@@ -250,10 +272,36 @@ void engine_runnerT() {
   }
 }
 
+int halt_on_error() {
+  if (halt > 0) {
+    heater_off();
+    pump_off();
+
+    strcpy(str, "System error. Halted. Code: ");
+    itoa(halt, temp);
+    strcat(str, temp);
+    strcat(str, "\n");
+    fputs(str, xbee);      
+    memset(str, 0, STR_SIZE);
+
+    engine_wait_ms(POLLING_PERIOD);
+
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 void engine_runner() {
   while (1) {
+    if (halt_on_error()) {
+      continue;
+    }
+
     engine_init();
+
     blink_led();
+
     strcpy(str, "Air temperature: ");
     air_temp = get_air_temp();
     itoa(air_temp, temp);
@@ -312,7 +360,12 @@ void engine_runner() {
 	fputs("Heater off.\n", xbee);
       } else {
 	heater_on();
-	fputs("Heater on.\n", xbee);
+	strcpy(str, "Heater On: ");
+	itoa(heater_periods, temp);
+	strcat(str, temp);
+	strcat(str, "\n");
+	fputs(str, xbee);
+	memset(str, 0, STR_SIZE);
       }
       pump_on();
       fputs("Pump on.\n", xbee);
@@ -322,6 +375,13 @@ void engine_runner() {
       pump_off();
     }
 
-    engine_wait_ms(POLLING_PERIOD);
+    if (heater_periods > MAX_HEATER_PERIODS) {
+      fputs("Max heater periods reached. Error. Halting.\n", xbee);
+      halt = ERROR_MAX_HEAT;
+      heater_off();
+      pump_off();
+    } else {
+      engine_wait_ms(POLLING_PERIOD);
+    }
   }
 }
