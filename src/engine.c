@@ -14,11 +14,16 @@
 #define HEATER 15
 #define HEATER_DEACTIVATION 4300 // Centi-Celsius ;)
 #define POLLING_PERIOD 60000 // Milliseconds
-#define MAX_HEATER_PERIODS 60 // One hour
 #define PUMP 26
 #define STR_SIZE 64
 #define TEMP_SIZE 16
 
+/* Max values */
+#define MAX_HEATER_PERIODS 60 // One hour with 60s polling periods
+#define MAX_AIR_TEMP 5000 // Centi-Celcius ;)
+
+/* Error codes for system halt conditions */
+#define ERROR_HIGH_AIR_TEMP 3
 #define ERROR_BAD_TEMP 2
 #define ERROR_MAX_HEAT 1
 
@@ -302,13 +307,20 @@ void engine_runner() {
 
     blink_led();
 
-    strcpy(str, "Air temperature: ");
+    strcpy(str, "A: ");
     air_temp = get_air_temp();
     itoa(air_temp, temp);
     strcat(str, temp);
     strcat(str, "\n");
     fputs(str, xbee);
     memset(str, 0, STR_SIZE);
+    if (air_temp >= MAX_AIR_TEMP) {
+      fputs("Max air temperature reached. Error. Halting.\n", xbee);
+      halt = ERROR_HIGH_AIR_TEMP;
+      heater_off();
+      pump_off();
+      continue;
+    }
 
     soil_a = get_soil_a_temp();
     soil_b = get_soil_b_temp();
@@ -316,7 +328,7 @@ void engine_runner() {
     soil_d = get_soil_d_temp();
     soil_temp = soil_a + soil_b + soil_c + soil_d;
 
-    strcpy(str, "Soil A,B,C,D,+: ");
+    strcpy(str, "S: ");
     itoa(soil_a, temp);
     strcat(str, temp);
     strcat(str, ",");
@@ -328,9 +340,6 @@ void engine_runner() {
     strcat(str, ",");
     itoa(soil_d, temp);
     strcat(str, temp);
-    strcat(str, ",");
-    itoa(soil_temp, temp);
-    strcat(str, temp);
     strcat(str, "\n");
     fputs(str, xbee);
     memset(str, 0, STR_SIZE);
@@ -339,14 +348,11 @@ void engine_runner() {
     water_b = get_water_b_temp();
     water_temp = water_a + water_b;
 
-    strcpy(str, "Water A,B,+: ");
+    strcpy(str, "W: ");
     itoa(water_a, temp);
     strcat(str, temp);
     strcat(str, ",");
     itoa(water_b, temp);
-    strcat(str, temp);
-    strcat(str, ",");
-    itoa(water_temp, temp);
     strcat(str, temp);
     strcat(str, "\n");
     fputs(str, xbee);
@@ -357,7 +363,7 @@ void engine_runner() {
 	  water_a >> 1 > water_b ||
 	  water_b >> 1 > water_a) {
 	heater_off();
-	fputs("Heater off.\n", xbee);
+	fputs("Heat off.\n", xbee);
       } else {
 	heater_on();
 	strcpy(str, "Heater On: ");
@@ -380,8 +386,9 @@ void engine_runner() {
       halt = ERROR_MAX_HEAT;
       heater_off();
       pump_off();
-    } else {
-      engine_wait_ms(POLLING_PERIOD);
+      continue;
     }
+
+    engine_wait_ms(POLLING_PERIOD);
   }
 }
