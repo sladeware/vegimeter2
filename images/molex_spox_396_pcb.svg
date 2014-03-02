@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<svg version='1.2' baseProfile='tiny' x='0in' y='0in' width='0.442in' height='0.408in' viewBox='0 0 11.2268 10.3632' >
+<g id="silkscreen">
+  <line class="other" stroke="#f0f0f0" stroke-linecap="round" y1="0" x1="0" y2="0" stroke-width="0.36" x2="0.442in"/>
+  <line class="other" stroke="#f0f0f0" stroke-linecap="round" y1="0.442in" x1="0in" y2="0.442in" stroke-width="0.36" x2="0.442in"/>
+  <line class="other" stroke="#f0f0f0" stroke-linecap="round" y1="0" x1="0" y2="0.442in" stroke-width="0.36" x2="0"/>
+  <line class="other" stroke="#f0f0f0" stroke-linecap="round" y1="0" x1="0.442in" y2="0.442in" stroke-width="0.36" x2="0.442in"/>
+</g>
+<g id="copper1">
+  <g id="copper0">
+      <circle fill="none" cx="0.065in" cy="0.204in" connectorname="1" stroke="#F7BD13" id="connector0pad" r="1.0" stroke-width="0.4"/>
+      <circle fill="none" cx="0.221in" cy="0.204in" connectorname="2" stroke="#F7BD13" id="connector1pad" r="1.0" stroke-width="0.4"/>
+      <circle fill="none" cx="0.377in" cy="0.204in" connectorname="3" stroke="#F7BD13" id="connector2pad" r="1.0" stroke-width="0.4"/>
+    </g>
+  </g>
+</svg>

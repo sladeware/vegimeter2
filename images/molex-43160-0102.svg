@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="32" height="32" viewBox="0, 0, 32, 32">
+  <g id="icon">
+    <path d="M6.099,4.035 L39.068,4.035 L39.068,27.766 L6.099,27.766 z" fill="#232323"/>
+    <path d="M6.704,4.613 L38.635,4.613 L38.635,6.254 L6.704,6.254 z" fill="#494949"/>
+    <path d="M21.627,8.833 L17.168,14.947 L20.211,15.547 L16.396,22.968 L23.855,14.004 L20.683,13.19 z" fill="#FACB00"/>
+    <path d="M6.704,6.255 L38.635,6.255 L38.635,11.627 L6.704,11.627 z" fill="#3D3D3D" fill-opacity="0.3"/>
+    <path d="M5.667,25.628 L38.636,25.628 L38.636,27.249 L5.667,27.249 z" fill="#000000"/>
+    <path d="M5.667,19.851 L38.636,19.851 L38.636,25.679 L5.667,25.679 z" fill="#0F0F0F" fill-opacity="0.4"/>
+    <path d="M1.627,2.864 L9.316,2.864 L9.316,28.937 L1.627,28.937 z" fill="#232323"/>
+  </g>
+  <defs/>
+</svg>

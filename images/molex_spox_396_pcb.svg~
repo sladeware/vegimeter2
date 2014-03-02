@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!-- Created with Fritzing (http://www.fritzing.org/) -->
+<svg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' version='1.2' baseProfile='tiny' x='0in' y='0in' width='0.305in' height='0.225in' viewBox='0 0 21.96 16.2' >
+<g partID='4220170'><g xmlns="http://www.w3.org/2000/svg" id="copper0">
+ <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="3.78" cy="8.46" connectorname="1" stroke="#F7BD13" id="connector0pad" r="2.052" stroke-width="1.224"/>
+ <path xmlns="http://www.w3.org/2000/svg" fill="#F7BD13" stroke="none" stroke-width="0" d="m1.116,5.796,5.328,0,0,5.328,-5.328,0,0,-5.328zM2.34,8.46a1.44,1.44,0,1,0,2.88,0,1.44,1.44,0,1,0,-2.88,0z"/>
+ <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="10.98" cy="9.18" connectorname="2" stroke="#F7BD13" id="connector1pad" r="2.052" stroke-width="1.224"/>
+ <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="18.18" cy="8.46" connectorname="3" stroke="#F7BD13" id="connector2pad" r="2.052" stroke-width="1.224"/>
+</g>
+</g><g partID='4220171'><g xmlns="http://www.w3.org/2000/svg" id="copper1">
+ <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="3.78" cy="8.46" connectorname="1" stroke="#F7BD13" id="connector0pad" r="2.052" stroke-width="1.224"/>
+ <path xmlns="http://www.w3.org/2000/svg" fill="#F7BD13" stroke="none" stroke-width="0" d="m1.116,5.796,5.328,0,0,5.328,-5.328,0,0,-5.328zM2.34,8.46a1.44,1.44,0,1,0,2.88,0,1.44,1.44,0,1,0,-2.88,0z"/>
+ <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="10.98" cy="9.18" connectorname="2" stroke="#F7BD13" id="connector1pad" r="2.052" stroke-width="1.224"/>
+ <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="18.18" cy="8.46" connectorname="3" stroke="#F7BD13" id="connector2pad" r="2.052" stroke-width="1.224"/>
+ <g xmlns="http://www.w3.org/2000/svg" id="copper0">
+  <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="3.78" cy="8.46" connectorname="1" stroke="#F7BD13" id="connector0pad" r="2.052" stroke-width="1.224"/>
+  <path xmlns="http://www.w3.org/2000/svg" fill="#F7BD13" stroke="none" stroke-width="0" d="m1.116,5.796,5.328,0,0,5.328,-5.328,0,0,-5.328zM2.34,8.46a1.44,1.44,0,1,0,2.88,0,1.44,1.44,0,1,0,-2.88,0z"/>
+  <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="10.98" cy="9.18" connectorname="2" stroke="#F7BD13" id="connector1pad" r="2.052" stroke-width="1.224"/>
+  <circle xmlns="http://www.w3.org/2000/svg" fill="none" cx="18.18" cy="8.46" connectorname="3" stroke="#F7BD13" id="connector2pad" r="2.052" stroke-width="1.224"/>
+ </g>
+</g>
+</g><g partID='4220172'><g xmlns="http://www.w3.org/2000/svg" id="silkscreen">
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="0.18" x1="0.18" y2="16.02" stroke-width="0.36" x2="0.18"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="0.18" x1="21.78" y2="16.02" stroke-width="0.36" x2="21.78"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="0.18" x1="21.78" y2="0.18" stroke-width="0.36" x2="0.18"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="16.02" x1="21.78" y2="16.02" stroke-width="0.36" x2="18.18"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="16.02" x1="18.18" y2="16.02" stroke-width="0.36" x2="3.78"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="16.02" x1="3.78" y2="16.02" stroke-width="0.36" x2="0.18"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="16.02" x1="3.78" y2="12.42" stroke-width="0.36" x2="3.78"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="12.42" x1="3.78" y2="12.42" stroke-width="0.36" x2="18.18"/>
+ <line xmlns="http://www.w3.org/2000/svg" class="other" stroke="#f0f0f0" stroke-linecap="round" y1="12.42" x1="18.18" y2="16.02" stroke-width="0.36" x2="18.18"/>
+</g>
+</g></svg>
