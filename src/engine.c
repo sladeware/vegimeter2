@@ -12,14 +12,14 @@
 
 #define HEAT_PUMP_ACTIVATION 2100 // Centi-Celsius ;)
 #define HEATER 15
-#define HEATER_DEACTIVATION 4300 // Centi-Celsius ;)
+#define HEATER_DEACTIVATION 4200 // Centi-Celsius ;)
 #define POLLING_PERIOD 60000 // Milliseconds
 #define PUMP 26
 #define STR_SIZE 64
 #define TEMP_SIZE 16
 
 /* Max values */
-#define MAX_HEATER_PERIODS 60 // One hour with 60s polling periods
+#define MAX_HEATER_PERIODS 80 // One hour with 60s polling periods
 #define MAX_AIR_TEMP 5000 // Centi-Celcius ;)
 
 /* Error codes for system halt conditions */
@@ -176,32 +176,6 @@ int get_air_temp() {
   return t;
 }
 
-void led_init() {
-  DIR_OUTPUT(20);
-}
-
-void led_on() {
-  OUT_HIGH(20);
-  led = 1;
-}
-
-void led_off() {
-  OUT_LOW(20);
-  led = 0;
-}
-
-int get_led() {
-  return led;
-}
-
-void blink_led() {
-  if (get_led()) {
-    led_off();
-  } else {
-    led_on();
-  }
-}
-
 void engine_wait_ms(unsigned int ms) {
   unsigned waitcycles;
   unsigned millisecond = _clkfreq / 1000;
@@ -212,6 +186,54 @@ void engine_wait_ms(unsigned int ms) {
     __napuntil(waitcycles);
     --ms;
   }
+}
+
+void led_init() {
+  DIR_OUTPUT(23);
+  DIR_OUTPUT(22);
+  DIR_OUTPUT(21);
+  DIR_OUTPUT(20);
+  DIR_OUTPUT(19);
+  DIR_OUTPUT(18);
+  DIR_OUTPUT(17);
+  DIR_OUTPUT(16);
+}
+
+void led_on(int pin) {
+  OUT_HIGH(pin);
+  led = 1;
+}
+
+void led_off(int pin) {
+  OUT_LOW(pin);
+  led = 0;
+}
+
+void error_leds() {
+  int i;
+
+  for (i = 16; i <= 23; i++) {
+    led_on(i);
+  }
+}
+
+void strobe_leds() {
+  int wait = 200;
+  int i;
+
+  for (i = 16; i <= 23; i++) {
+    led_on(i);
+    engine_wait_ms(wait);
+    led_off(i);
+  }
+}
+
+void blink_led() {
+  int pin = 20;
+
+  led_on(pin);
+  engine_wait_ms(500);
+  led_off(pin);  
 }
 
 void engine_xbee_init() {
@@ -289,6 +311,7 @@ int halt_on_error() {
     fputs(str, xbee);      
     memset(str, 0, STR_SIZE);
 
+    error_leds();
     engine_wait_ms(POLLING_PERIOD);
 
     return 1;
@@ -389,6 +412,8 @@ void engine_runner() {
       continue;
     }
 
+    strobe_leds();
+    
     engine_wait_ms(POLLING_PERIOD);
   }
 }
